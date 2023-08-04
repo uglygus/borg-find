@@ -11,20 +11,20 @@ classifiers = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.8"
-cached-property = ""
-colorama = ""
+python = "^3.11"
+cached-property = "^1.5"
+colorama = "^0.4.6"
 
-[tool.poetry.dev-dependencies]
-black = ""
-pylint = ""
-pytest = ""
-pytest-cov = ""
-rope = ""
+[tool.poetry.group.dev.dependencies]
+black = "^23.7"
+pylint = "^2.17"
+pytest = "^7.4"
+pytest-cov = "^4.1"
+rope = "^1.9"
 
 [tool.poetry.scripts]
 borg-find = 'borg_find.cli:run'
 
 [build-system]
-requires = ["poetry-core>=1.0.0"]
+requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
