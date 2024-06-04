@@ -1,6 +1,8 @@
 """
 borg wrapper
 """
+
+import getpass
 import os
 import subprocess
 from dataclasses import dataclass
@@ -18,6 +20,7 @@ class Borg:
     lock_wait: int = 10
 
     def __post_init__(self):
+        os.environ["BORG_PASSPHRASE"] = getpass.getpass("Repository password: ")
         if self.cache_folder:
             self.cache_folder.mkdir(exist_ok=True, parents=True)
 
