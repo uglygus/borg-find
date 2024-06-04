@@ -1,6 +1,7 @@
 """
 entry point
 """
+
 import os
 import re
 import subprocess
@@ -15,16 +16,20 @@ from colorama import Fore, Style
 
 from borg_find.borg import Borg
 
-from . import __version__
-from .filters import ArchiveFilter, FileFilter
-from .model import BorgRepository
-from .ui import dumpproc, label
-from .utils import print_temp_message, sizeof_fmt
+print("cwd = ", os.getcwd())
+
+
+from borg_find import __version__
+from borg_find.filters import ArchiveFilter, FileFilter
+from borg_find.model import BorgRepository
+from borg_find.ui import dumpproc, label
+from borg_find.utils import print_temp_message, sizeof_fmt
 
 DEFAULT_CACHE_FOLDER = Path.home() / ".cache" / "borg-find"
 
 
 def run():
+    print("run()")
     parser = ArgumentParser("borg-find")
     parser.add_argument("--version", action="version", version=f"version {__version__}")
     parser.add_argument(
@@ -117,9 +122,7 @@ def run():
     )
 
     xgroup = parser.add_mutually_exclusive_group()
-    xgroup.add_argument(
-        "-x", "--exec", help="execute the command on every matching file"
-    )
+    xgroup.add_argument("-x", "--exec", help="execute the command on every matching file")
     xgroup.add_argument("--md5", action="store_true", help="also print file md5sum")
     xgroup.add_argument("--sha1", action="store_true", help="also print file sha1sum")
     xgroup.add_argument(
@@ -145,6 +148,7 @@ def run():
         )
         repo = BorgRepository(borg, args.repository)
         archives = list(filter(ArchiveFilter(args), repo.archives))
+        # print("archives=", archives)
         if args.reverse:
             archives = list(reversed(archives))
         if args.last:
@@ -153,28 +157,29 @@ def run():
             archives = archives[0 : args.first]
 
         if args.jobs > 0:
-            print_temp_message(
-                f"Reading {len(archives)} archive(s) from {label(repo)} with {args.jobs} thread(s) ..."
-            )
+            # print_temp_message(
+            #     f"Reading {len(archives)} archive(s) from {label(repo)} with {args.jobs} thread(s) ..."
+            # )
             # preload archives
             with ThreadPoolExecutor(max_workers=args.jobs) as executor:
                 jobs = {executor.submit(lambda a: a.files, a): a for a in archives}
                 for index, job in enumerate(as_completed(jobs.keys())):
                     archive = jobs[job]
-                    print_temp_message(
-                        f"[{index+1}/{len(jobs)}] Reading archive {label(archive)} ..."
-                    )
+                    # print_temp_message(
+                    #     f"[{index+1}/{len(jobs)}] Reading archive {label(archive)} ..."
+                    # )
 
         # process archives
         for archive in archives:
+            # print("archive.files = ", archive.files)
             matching_files = sorted(filter(FileFilter(args, archive), archive.files))
+            # print("matching_files=", matching_files)
             if len(matching_files) == 0:
                 print(f"Skip {label(archive)}, no matching file")
             else:
-                print(
-                    f"Inspect {label(archive)}, {len(matching_files)} matching file(s)"
-                )
-
+                print(f"Inspect {label(archive)}, {len(matching_files)} matching file(s)")
+                for f in matching_files:
+                    print("\t", f.description["size"], "\t", f.description["path"])
                 if args.exec:
                     # Exec mode
                     for file in matching_files:
@@ -196,35 +201,36 @@ def run():
                                 if user_process.returncode == 0
                                 else f"{Fore.RED}ERROR{Fore.RESET}"
                             )
-                            print(
-                                f"[{status}]",
-                                label(user_process),
-                                "on",
-                                label(file),
-                                "returned",
-                                user_process.returncode,
-                            )
+                            # print(
+                            #     f"[{status}]",
+                            #     label(user_process),
+                            #     "on",
+                            #     label(file),
+                            #     "returned",
+                            #     user_process.returncode,
+                            # )
                             if args.verbose:
                                 dumpproc(user_process.stdout, user_process.stderr)
                 elif args.output:
                     # Extract
                     count = 1
+
                     for file in matching_files:
                         if file.is_file():
                             target = args.output / archive.name / file.as_path
                             file.extract(target)
-                            print(
-                                " ",
-                                f"[{count}/{len(matching_files)}]",
-                                f"Extracted {label(file)} to {label(target)}",
-                                f"({sizeof_fmt(file.size, 'B')})",
-                            )
-                        else:
-                            print(
-                                " ",
-                                f"[{count}/{len(matching_files)}]",
-                                f"Skip {label(file)}, not a regular file",
-                            )
+                            # print(
+                            #     " ",
+                            #     f"[{count}/{len(matching_files)}]",
+                            #     f"Extracted {label(file)} to {label(target)}",
+                            #     f"({sizeof_fmt(file.size, 'B')})",
+                            # )
+                        # else:
+                        # print(
+                        #     " ",
+                        #     f"[{count}/{len(matching_files)}]",
+                        #     f"Skip {label(file)}, not a regular file",
+                        # )
                         count += 1
                 else:
                     # List mode
@@ -247,15 +253,16 @@ def run():
                                 label(file),
                                 suffix,
                             )
-                        else:
-                            print(
-                                " ",
-                                label(file),
-                                suffix,
-                            )
+                    else:
+                        print(
+                            " ",
+                            label(file),
+                            suffix,
+                        )
 
-                    print(f"  {len(matching_files)} file(s), {sizeof_fmt(size)}")
-                    print("")
+                        print(f"  {len(matching_files)} file(s), {sizeof_fmt(size)}")
+                        print("")
+                        
 
     except KeyboardInterrupt:
         pass
@@ -264,3 +271,8 @@ def run():
         if getenv("DEBUG"):
             raise e
         sys.exit(1)
+
+
+if __name__ == "__main__":
+    sys.exit(run())
+print("done")

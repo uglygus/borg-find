@@ -32,6 +32,7 @@ def compute_fingerprint(content, func: Callable = hashlib.md5):
     """
     compute fingerprint given the algo function (sha1, md5 ...)
     """
+    print("compute_fingerprint()...")
     algo = func()
     algo.update(content)
     return algo.hexdigest()
