@@ -14,22 +14,18 @@ from pathlib import Path
 
 from colorama import Fore, Style
 
-from borg_find.borg import Borg
-
-print("cwd = ", os.getcwd())
-
-
 from borg_find import __version__
+from borg_find.borg import Borg
 from borg_find.filters import ArchiveFilter, FileFilter
 from borg_find.model import BorgRepository
 from borg_find.ui import dumpproc, label
-from borg_find.utils import print_temp_message, sizeof_fmt
+from borg_find.utils import parse_size, print_temp_message, sizeof_fmt
 
 DEFAULT_CACHE_FOLDER = Path.home() / ".cache" / "borg-find"
 
 
 def run():
-    print("run()")
+
     parser = ArgumentParser("borg-find")
     parser.add_argument("--version", action="version", version=f"version {__version__}")
     parser.add_argument(
@@ -94,6 +90,22 @@ def run():
 
     fgroup = parser.add_argument_group("file selection")
     fgroup.add_argument(
+        "--size-larger-than",
+        metavar="SIZE",
+        dest="size_larger_than",
+        type=parse_size,
+        help="Include files whose size is larger than SIZE. Can be bytes or most human readable sizes eg. 10Mb, 1gb, 2G, 512kb. Treats all variations as k=1000 not k=1024",
+    )
+
+    fgroup.add_argument(
+        "--size-smaller-than",
+        metavar="SIZE",
+        dest="size_smaller_than",
+        type=parse_size,
+        help="Include files whose size is smaller than SIZE. Can be bytes or most human readable sizes eg. 10Mb, 1gb, 2G, 512kb. Treats all variations as 1k=1024",
+    )
+
+    fgroup.add_argument(
         "-n",
         "--name",
         metavar="MOTIF",
@@ -141,6 +153,7 @@ def run():
 
     # Parse command line
     args = parser.parse_args()
+
     try:
         borg = Borg(
             getenv("BORG_BIN", "borg"),
@@ -148,7 +161,7 @@ def run():
         )
         repo = BorgRepository(borg, args.repository)
         archives = list(filter(ArchiveFilter(args), repo.archives))
-        # print("archives=", archives)
+
         if args.reverse:
             archives = list(reversed(archives))
         if args.last:
@@ -182,6 +195,7 @@ def run():
                     print("\t", f.description["size"], "\t", f.description["path"])
                 if args.exec:
                     # Exec mode
+                    print("runnning excc-->")
                     for file in matching_files:
                         if file.is_dir():
                             print(
@@ -201,14 +215,14 @@ def run():
                                 if user_process.returncode == 0
                                 else f"{Fore.RED}ERROR{Fore.RESET}"
                             )
-                            # print(
-                            #     f"[{status}]",
-                            #     label(user_process),
-                            #     "on",
-                            #     label(file),
-                            #     "returned",
-                            #     user_process.returncode,
-                            # )
+                            print(
+                                f"[{status}]",
+                                label(user_process),
+                                "on",
+                                label(file),
+                                "returned",
+                                user_process.returncode,
+                            )
                             if args.verbose:
                                 dumpproc(user_process.stdout, user_process.stderr)
                 elif args.output:
@@ -219,18 +233,18 @@ def run():
                         if file.is_file():
                             target = args.output / archive.name / file.as_path
                             file.extract(target)
-                            # print(
-                            #     " ",
-                            #     f"[{count}/{len(matching_files)}]",
-                            #     f"Extracted {label(file)} to {label(target)}",
-                            #     f"({sizeof_fmt(file.size, 'B')})",
-                            # )
-                        # else:
-                        # print(
-                        #     " ",
-                        #     f"[{count}/{len(matching_files)}]",
-                        #     f"Skip {label(file)}, not a regular file",
-                        # )
+                            print(
+                                " ",
+                                f"[{count}/{len(matching_files)}]",
+                                f"Extracted {label(file)} to {label(target)}",
+                                f"({sizeof_fmt(file.size, 'B')})",
+                            )
+                        else:
+                            print(
+                                " ",
+                                f"[{count}/{len(matching_files)}]",
+                                f"Skip {label(file)}, not a regular file",
+                            )
                         count += 1
                 else:
                     # List mode
@@ -253,16 +267,10 @@ def run():
                                 label(file),
                                 suffix,
                             )
-                    else:
-                        print(
-                            " ",
-                            label(file),
-                            suffix,
-                        )
-
-                        print(f"  {len(matching_files)} file(s), {sizeof_fmt(size)}")
-                        print("")
-                        
+                        else:
+                            print(f" {label(file)} {suffix}")
+                    print(f"  {len(matching_files)} file(s), {sizeof_fmt(size)}")
+                    print("")
 
     except KeyboardInterrupt:
         pass
@@ -275,4 +283,3 @@ def run():
 
 if __name__ == "__main__":
     sys.exit(run())
-print("done")

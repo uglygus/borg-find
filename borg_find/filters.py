@@ -23,7 +23,9 @@ class ArchiveFilter:
     args: Namespace
 
     def __call__(self, archive: BorgArchive):
+        # print("self.args.after==", self.args.after)
         if self.args.after and self.args.after > archive.date:
+            print(f"archivedate={archive.date} is before args.after={self.args.after}-skipping ")
             return False
         if self.args.before and self.args.before < archive.date:
             return False
@@ -43,21 +45,36 @@ class FileFilter:
 
     def __call__(self, file: BorgFile):
         out = False
-        if self.args.names is None and self.args.patterns is None:
+
+        if (
+            self.args.names is None
+            and self.args.patterns is None
+            and self.args.size_larger_than is None
+            and self.args.size_smaller_than is None
+        ):
             out = True
+
         if not out and self.args.names:
             for name in self.args.names:
                 if name.lower() in file.path.lower():
                     out = True
+
         if not out and self.args.patterns:
             for pattern in self.args.patterns:
                 if pattern.search(file.path):
                     out = True
-        if (
-            out
-            and (self.args.new or self.args.modified)
-            and self.previous_archive is not None
-        ):
+
+        if not out and self.args.size_larger_than:
+            if file.size > self.args.size_larger_than:
+                out = True
+
+        print(f"xxx- {out=} {self.args.size_smaller_than=}     {file.size=}")
+        if not out and self.args.size_smaller_than:
+            print(f"{self.args.size_smaller_than=}     {file.size=}")
+            if file.size < self.args.size_smaller_than:
+                out = True
+
+        if out and (self.args.new or self.args.modified) and self.previous_archive is not None:
             # also check is file is new or modified
             out = False
             previous_file = self.previous_archive.find(file.path)
