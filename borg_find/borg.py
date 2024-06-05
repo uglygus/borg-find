@@ -20,7 +20,7 @@ class Borg:
     lock_wait: int = 10
 
     def __post_init__(self):
-        if not os.environ["BORG_PASSPHRASE"]:
+        if "BORG_PASSPHRASE" in os.environ:
             os.environ["BORG_PASSPHRASE"] = getpass.getpass(
                 "Repository passphrase [blank if none]: "
             )
