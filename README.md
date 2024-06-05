@@ -57,7 +57,7 @@ options:
   --version             show program's version number and exit
   -v, --verbose         print more details
   -j JOBS, --jobs JOBS  number of parallel threads to read archives
-  --no-cache            disable caching archive content (default folder: /Users/tbatters/.cache/borg-find)
+  --no-cache            disable caching archive content (default folder: $HOME/.cache/borg-find)
   -x EXEC, --exec EXEC  execute the command on every matching file
   --md5                 also print file md5sum
   --sha1                also print file sha1sum
