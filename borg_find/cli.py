@@ -25,7 +25,6 @@ DEFAULT_CACHE_FOLDER = Path.home() / ".cache" / "borg-find"
 
 
 def run():
-
     parser = ArgumentParser("borg-find")
     parser.add_argument("--version", action="version", version=f"version {__version__}")
     parser.add_argument(
@@ -94,15 +93,14 @@ def run():
         metavar="SIZE",
         dest="size_larger_than",
         type=parse_size,
-        help="Include files whose size is larger than SIZE. Can be bytes or most human readable sizes eg. 10Mb, 1gb, 2G, 512kb. Treats all variations as k=1000 not k=1024",
+        help="include files larger than SIZE in bytes. eg. 2048, 100b, 10Mb, 1gb, 2G, 512kb. 1k=1024",
     )
-
     fgroup.add_argument(
         "--size-smaller-than",
         metavar="SIZE",
         dest="size_smaller_than",
         type=parse_size,
-        help="Include files whose size is smaller than SIZE. Can be bytes or most human readable sizes eg. 10Mb, 1gb, 2G, 512kb. Treats all variations as 1k=1024",
+        help="include files whose larger than SIZE in bytes.  eg. 1009, 15b, 10Mb, 1gb, 2G, 512kb. 1k=1024",
     )
 
     fgroup.add_argument(
