@@ -1,6 +1,7 @@
 """
 borg model: repository, archive, file
 """
+
 from __future__ import annotations
 
 import hashlib
@@ -29,7 +30,6 @@ class BorgRepository:
 
     @property
     def borg_list(self) -> dict:
-        # print("borg_list returning", self.borg.repo_list(self.source), "\n")
         return self.borg.repo_list(self.source)
 
     @cached_property
@@ -100,9 +100,6 @@ class BorgArchive:
 
     @cached_property
     def files(self) -> List[BorgFile]:
-        # print("\n\n--BorgArchive.files()--\n")
-        # for f in self.borg_list:
-        # print("borg_list contains: ", f)
         return [BorgFile(self, f) for f in self.borg_list]
 
     @cached_property
@@ -120,31 +117,6 @@ class BorgArchive:
 class BorgFile:
     archive: BorgArchive
     description: dict
-
-    # def __init__(self, archive: BorgArchive, description: dict):
-    #     self.archive = archive
-    #     self.description = description
-    #     print("__init__ BorgFile:")
-    #     print(
-    #         "BorgFile called from file:",
-    #         inspect.stack()[1].filename,
-    #         "function:",
-    #         inspect.stack()[1].function,
-    #         "inspect.stack:",
-    #         inspect.stack(),
-    #         "inspect.stack()[1]:",
-    #         inspect.stack()[1],
-    #         "\n",
-    #     )
-    #     print("New BorgFile type(description=)", type(self.description), "\n")
-    #     if type(self.description) != dict:
-    #         raise ValueError("description is not a dict!\n")
-    #     input("__init__ done")
-
-    # def __post_init__(self):
-    #     print("New BorgFile type(description=)", type(self.description))
-    #     if type(self.description) != dict:
-    #         raise ValueError("description is not a dict!")
 
     def __lt__(self, other):
         if not isinstance(other, BorgFile):
@@ -174,10 +146,6 @@ class BorgFile:
 
     @cached_property
     def path(self) -> str:
-        # print("type(self)=", type(self))
-        # print("self.description=", self.description, "\n")
-        # print("type(self.description)=", type(self.description), "\n")
-        # print('self.description["user"]=', self.description["user"], "\n")
         return self.description["path"]
 
     @cached_property

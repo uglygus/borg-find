@@ -168,23 +168,21 @@ def run():
             archives = archives[0 : args.first]
 
         if args.jobs > 0:
-            # print_temp_message(
-            #     f"Reading {len(archives)} archive(s) from {label(repo)} with {args.jobs} thread(s) ..."
-            # )
+            print_temp_message(
+                f"Reading {len(archives)} archive(s) from {label(repo)} with {args.jobs} thread(s) ..."
+            )
             # preload archives
             with ThreadPoolExecutor(max_workers=args.jobs) as executor:
                 jobs = {executor.submit(lambda a: a.files, a): a for a in archives}
                 for index, job in enumerate(as_completed(jobs.keys())):
                     archive = jobs[job]
-                    # print_temp_message(
-                    #     f"[{index+1}/{len(jobs)}] Reading archive {label(archive)} ..."
-                    # )
+                    print_temp_message(
+                        f"[{index+1}/{len(jobs)}] Reading archive {label(archive)} ..."
+                    )
 
         # process archives
         for archive in archives:
-            # print("archive.files = ", archive.files)
             matching_files = sorted(filter(FileFilter(args, archive), archive.files))
-            # print("matching_files=", matching_files)
             if len(matching_files) == 0:
                 print(f"Skip {label(archive)}, no matching file")
             else:
@@ -193,7 +191,6 @@ def run():
                     print("\t", f.description["size"], "\t", f.description["path"])
                 if args.exec:
                     # Exec mode
-                    print("runnning excc-->")
                     for file in matching_files:
                         if file.is_dir():
                             print(
@@ -267,6 +264,7 @@ def run():
                             )
                         else:
                             print(f" {label(file)} {suffix}")
+
                     print(f"  {len(matching_files)} file(s), {sizeof_fmt(size)}")
                     print("")
 

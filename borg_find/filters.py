@@ -23,9 +23,7 @@ class ArchiveFilter:
     args: Namespace
 
     def __call__(self, archive: BorgArchive):
-        # print("self.args.after==", self.args.after)
         if self.args.after and self.args.after > archive.date:
-            print(f"archivedate={archive.date} is before args.after={self.args.after}-skipping ")
             return False
         if self.args.before and self.args.before < archive.date:
             return False
@@ -68,9 +66,7 @@ class FileFilter:
             if file.size > self.args.size_larger_than:
                 out = True
 
-        print(f"xxx- {out=} {self.args.size_smaller_than=}     {file.size=}")
         if not out and self.args.size_smaller_than:
-            print(f"{self.args.size_smaller_than=}     {file.size=}")
             if file.size < self.args.size_smaller_than:
                 out = True
 
