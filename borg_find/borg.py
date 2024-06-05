@@ -13,8 +13,6 @@ from typing import List, Optional
 
 from sqlitedict import SqliteDict
 
-EXTENSION = ".borg-cache"
-
 
 @dataclass
 class Borg:
@@ -29,6 +27,7 @@ class Borg:
             self.db = SqliteDict(
                 self.cache_folder / "borg-find.sqlite",
                 outer_stack=False,
+                tablename="archive",
                 encode=self.my_encode,
                 decode=self.my_decode,
                 autocommit=True,
@@ -51,20 +50,18 @@ class Borg:
     def my_encode(self, obj):
         # print("encode: ", obj)
 
-        return obj  # zlib.compress(obj)
+        return zlib.compress(obj)
 
     def my_decode(self, obj):
         # print("dencode: ", obj)
-        return obj  # zlib.decompress(obj)
+        return zlib.decompress(obj)
 
     # uid=ca4991bb8ecd419e887cc1780752f5ded95da11db101e9e817764f06c1f0bec0
     def _read_cache(self, uid: Optional[str]) -> Optional[bytes]:
-       # print(f"_read_cache(uid={uid}")
-       # print("len(db)=", len(self.db))
+        # print(f"_read_cache(uid={uid}")
+        # print("len(db)=", len(self.db))
         try:
             cached = self.db[uid]
-            print("cached uid found in db")
-         #   print("cached = ", cached)
         except KeyError:
             print("Not cached - recaclulating. uid=", uid)
             cached = None
@@ -111,10 +108,10 @@ class Borg:
 
     def archive_list(self, archive: str, uid: str = None) -> List[dict]:
         data = self._read_cache(uid)
-       # print("---ARCHIVE_LIST()--")
-       # print("type data=", type(data))
-       # print("data=", data)
-       # input("here mf....")
+        # print("---ARCHIVE_LIST()--")
+        # print("type data=", type(data))
+        # print("data=", data)
+        # input("here mf....")
         if data is None:
             command = self._command + ["list", archive, "--json-lines"]
             process = subprocess.run(
