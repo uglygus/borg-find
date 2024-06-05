@@ -20,7 +20,10 @@ class Borg:
     lock_wait: int = 10
 
     def __post_init__(self):
-        os.environ["BORG_PASSPHRASE"] = getpass.getpass("Repository passphrase [blank if none]: ")
+        if not os.environ["BORG_PASSPHRASE"]:
+            os.environ["BORG_PASSPHRASE"] = getpass.getpass(
+                "Repository passphrase [blank if none]: "
+            )
         if self.cache_folder:
             self.cache_folder.mkdir(exist_ok=True, parents=True)
 
